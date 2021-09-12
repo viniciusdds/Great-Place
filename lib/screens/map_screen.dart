@@ -5,12 +5,14 @@ import 'package:great_places/models/place.dart';
 class MapScreen extends StatefulWidget {
 
   final PlaceLocation initialLocation;
+  final bool isReadonly;
 
   MapScreen({
     this.initialLocation = const PlaceLocation(
       latitude: 37.419857,
       longitude: -122.078827
-    )
+    ),
+    this.isReadonly = false,
   });
 
   @override
@@ -18,11 +20,31 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+
+  LatLng _pickedPosition;
+
+  void _selectPosition(LatLng position){
+    setState(() {
+      _pickedPosition = position;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Selecione...'),
+        actions: [
+          if(!widget.isReadonly)
+            IconButton(
+                onPressed: _pickedPosition == null
+                 ? null
+                 : (){
+                       Navigator.of(context).pop(_pickedPosition);
+                   },
+                icon: Icon(Icons.check)
+            )
+        ],
       ),
       body: GoogleMap(
         initialCameraPosition: CameraPosition(
@@ -32,6 +54,15 @@ class _MapScreenState extends State<MapScreen> {
           ),
           zoom: 13
         ),
+        onTap: widget.isReadonly ? null : _selectPosition,
+        markers: _pickedPosition == null
+            ? Set()
+            : {
+              Marker(
+                markerId: MarkerId('p1'),
+                position: _pickedPosition,
+              )
+            },
       ),
     );
   }
